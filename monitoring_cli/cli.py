@@ -1422,7 +1422,10 @@ def webhook_create(
     url: Annotated[str, typer.Option(help="Webhook URL")],
     profile: ProfileOption = None,
     description: Annotated[str | None, typer.Option(help="Description")] = None,
-    secret: Annotated[str | None, typer.Option(help="Signing secret")] = None,
+    secret: Annotated[
+        str | None,
+        typer.Option(help="Shared secret sent in the x-webhook-secret header"),
+    ] = None,
 ) -> None:
     """Create a webhook. Prints the new webhook ID."""
     client, _ = _load_client(profile)
@@ -1437,7 +1440,10 @@ def webhook_create(
 def webhook_test(
     url: Annotated[str, typer.Option(help="Webhook URL to test")],
     profile: ProfileOption = None,
-    secret: Annotated[str | None, typer.Option(help="Signing secret")] = None,
+    secret: Annotated[
+        str | None,
+        typer.Option(help="Shared secret sent in the x-webhook-secret header"),
+    ] = None,
 ) -> None:
     """Send a test payload to a webhook URL and print the result."""
     client, _ = _load_client(profile)
@@ -1485,7 +1491,10 @@ def webhook_update(
     url: Annotated[str, typer.Option(help="Webhook URL")],
     profile: ProfileOption = None,
     description: Annotated[str | None, typer.Option(help="Description")] = None,
-    secret: Annotated[str | None, typer.Option(help="Signing secret")] = None,
+    secret: Annotated[
+        str | None,
+        typer.Option(help="Shared secret sent in the x-webhook-secret header"),
+    ] = None,
 ) -> None:
     """Update a webhook (name + url required)."""
     client, _ = _load_client(profile)
