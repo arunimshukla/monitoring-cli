@@ -274,10 +274,49 @@ Commands that act on a query or folder take it **either** by `--id <id>` **or** 
 
 | Command | Description |
 |---------|-------------|
-| `webhook` | Manage notification webhooks: `create`, `test`, `list`, `get`, `update`, `delete` (`--secret` for signing) |
+| `webhook` | Manage notification webhooks: `create`, `test`, `list`, `get`, `update`, `delete` (`--secret` adds a shared authentication header) |
 | `alert-filter` | Manage saved alert filters: `create`, `list`, `get`, `update`, `delete` (group queries/chains, `--colour`) |
 | `telegram-code` | Get the Telegram bot linking code for a query's notifications |
 | `share-query` / `unshare-query` | Share or unshare a query with a team (`--team-id`, `--perm` READ/WRITE) |
+
+#### Verify webhook deliveries
+
+Pass an optional shared secret when you create or test a webhook:
+
+```bash
+export DEDAUB_WEBHOOK_SECRET="replace-with-a-random-secret"
+
+dedaub-monitoring webhook create \
+  --name "security-alerts" \
+  --url "https://alerts.example.com/dedaub" \
+  --secret "$DEDAUB_WEBHOOK_SECRET"
+```
+
+Dedaub includes that value verbatim in the `x-webhook-secret` header of every
+request. It is a shared authentication secret, not an HMAC signature. Require
+HTTPS and compare the header with the expected value before processing the
+request. This dependency-free Node.js helper uses a constant-time comparison:
+
+```js
+import { timingSafeEqual } from "node:crypto";
+
+export function isDedaubWebhook(request) {
+  const supplied = request.headers["x-webhook-secret"];
+  if (typeof supplied !== "string") return false;
+
+  const expected = Buffer.from(process.env.DEDAUB_WEBHOOK_SECRET ?? "");
+  const received = Buffer.from(supplied);
+
+  return (
+    expected.length > 0 &&
+    expected.length === received.length &&
+    timingSafeEqual(expected, received)
+  );
+}
+```
+
+Avoid logging the header value. The full test payload and delivery behaviour
+are documented in [Dedaub's webhook documentation](https://docs.dedaub.com/docs/settings/Webhooks/).
 
 ## FAQ
 
